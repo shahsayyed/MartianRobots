@@ -4,11 +4,16 @@ namespace MartianRobots.Core.Instructions
 {
     public class LeftInstruction : IInstruction
     {
-        public void Execute(Position pos, int maxX, int maxY)
+        public void Execute(Position pos, int maxX, int maxY, HashSet<(int, int)> scents)
         {
-            pos.Orientation = pos.Orientation == 'N' ? 'W' :
-                             pos.Orientation == 'W' ? 'S' :
-                             pos.Orientation == 'S' ? 'E' : 'N';
+            pos.Orientation = pos.Orientation switch
+            {
+                'N' => 'W',
+                'W' => 'S',
+                'S' => 'E',
+                'E' => 'N',
+                _ => pos.Orientation
+            };
         }
     }
 }

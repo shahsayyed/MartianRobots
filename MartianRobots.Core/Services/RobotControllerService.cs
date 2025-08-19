@@ -26,28 +26,29 @@ namespace MartianRobots.Core.Services
             if (!parseResults.isValid)
                 return (false, string.Join("\n", parseResults.errors));
 
+            var scents = new HashSet<(int, int)>();
             var results = new List<string>();
 
             foreach (var robotInput in parseResults.RobotsInputs)
             {
-                var finalPosition = ExecuteRobotMovements(robotInput.initialPosition, robotInput.instructions);
+                var finalPosition = ExecuteRobotMovements(robotInput.initialPosition, parseResults.maxX, parseResults.MaxY, robotInput.instructions, scents);
                 results.Add($"{finalPosition.X} {finalPosition.Y} {finalPosition.Orientation}" + (finalPosition.Lost ? " LOST" : ""));
             }
 
             return (true, string.Join("\n", results));
         }
 
-        private Position ExecuteRobotMovements(Position initialPosition, string instructions)
+        private Position ExecuteRobotMovements(Position initialPosition, int maxX, int maxY, string instructions, HashSet<(int, int)> scents)
         {
-            if (initialPosition.Lost)
-                return initialPosition;
-
             var newPosition = new Position(initialPosition.X, initialPosition.Y, initialPosition.Orientation);
             foreach (char instruction in instructions)
             {
                 if (_instructionExecutors.ContainsKey(instruction))
                 {
-                    _instructionExecutors[instruction].Execute(newPosition, MAX_GRID_SIZE, MAX_GRID_SIZE);
+                    if (newPosition.Lost)
+                        break; // Stop processing if the robot has already lost
+                    var instructionExecutor = _instructionExecutors[instruction];
+                    instructionExecutor.Execute(newPosition, maxX, maxY, scents);
                 }
             }
             return newPosition;
